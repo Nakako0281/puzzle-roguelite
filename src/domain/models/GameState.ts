@@ -6,6 +6,9 @@ import { DeckState, createShuffledDeck, drawTiles, NEXT_QUEUE_SIZE } from './Dec
 export type GameStatus = 'playing' | 'gameOver';
 export type GameOverReason = 'deckEmpty' | 'boardFull' | undefined;
 
+export const SKILL_GAUGE_MAX = 10000; // スコア10000で発動
+
+
 export interface GameState {
   board: BoardState;
   deck: DeckState;
@@ -16,6 +19,7 @@ export interface GameState {
   status: GameStatus;
   gameOverReason: GameOverReason;
   scorePopups: { r: number; c: number; score: number; id: string }[];
+  skillGauge: number;
 }
 
 export function createInitialGameState(): GameState {
@@ -32,5 +36,6 @@ export function createInitialGameState(): GameState {
     status: 'playing',
     gameOverReason: undefined,
     scorePopups: [],
+    skillGauge: 0,
   };
 }

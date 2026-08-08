@@ -1,4 +1,4 @@
-import { GameState, GameStatus } from '../domain/models/GameState';
+import { GameState, GameStatus, SKILL_GAUGE_MAX } from '../domain/models/GameState';
 import { placeTile, isBoardFull } from '../domain/models/Board';
 import { drawTiles } from '../domain/models/Deck';
 
@@ -41,6 +41,8 @@ export function executePlaceTile(
       gameOverReason = 'boardFull';
     }
 
+    const newSkillGauge = Math.min(state.skillGauge + scoreGained, SKILL_GAUGE_MAX);
+
     return {
       ...state,
       board: newBoard,
@@ -51,6 +53,7 @@ export function executePlaceTile(
       status: newStatus,
       gameOverReason,
       scorePopups,
+      skillGauge: newSkillGauge,
     };
   } catch (e) {
     // Cannot place tile

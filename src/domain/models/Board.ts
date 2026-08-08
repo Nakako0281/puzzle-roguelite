@@ -16,7 +16,7 @@ export function isBoardFull(board: BoardState): boolean {
 export function findClusters(board: BoardState, row: number, col: number, attribute: TileAttribute, level: number, visited: boolean[][]): { r: number; c: number }[] {
   if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return [];
   if (visited[row][col]) return [];
-  
+
   const tile = board[row][col];
   if (!tile || tile.attribute !== attribute || tile.level !== level) return [];
 
@@ -52,7 +52,7 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
 
   // Placement Score
   let placementScore = tile.level * 10;
-  
+
   const initialNeighbors = getNeighbors(newBoard, row, col);
   const initialPolluted = initialNeighbors.some(n => n && n.attribute === 'polar_bear');
 
@@ -60,20 +60,20 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
   if (tile.attribute !== 'polar_bear' && initialPolluted) {
     placementScore = 0;
   }
-  
+
   totalScoreGained += placementScore;
   if (placementScore > 0) {
     scorePopups.push({ r: row, c: col, score: placementScore, id: `pop-place-${Date.now()}-${Math.random()}` });
   }
 
   let currentComboMultiplier = comboMultiplier;
-  
+
   // 連鎖（カスケード）処理用のキュー
   const queue = [{ r: row, c: col, currentTile: tile }];
 
   while (queue.length > 0) {
     const { r, c, currentTile } = queue.shift()!;
-    
+
     // 別の連鎖で消去済みでないか確認
     if (newBoard[r][c]?.id !== currentTile.id) continue;
 
@@ -138,7 +138,7 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
 
         // 進化したタイルがさらに連鎖を起こすかチェック
         queue.push({ r, c, currentTile: mergedTile });
-        
+
         currentComboMultiplier++;
       }
     }

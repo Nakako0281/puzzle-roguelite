@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { GameState, createInitialGameState } from '../../domain/models/GameState';
 import { executePlaceTile } from '../../usecases/PlaceTileUseCase';
 import { executeUseWildcard } from '../../usecases/UseWildcardUseCase';
+import { executeUseSkill } from '../../usecases/UseSkillUseCase';
 import { executeEndRun } from '../../usecases/EndRunUseCase';
 import { WildcardType } from '../../domain/models/Wildcard';
 import { GameRepository } from '../repositories/GameRepository';
@@ -50,6 +51,13 @@ export function useGameController() {
     });
   }, []);
 
+  const useSkill = useCallback((payload?: any) => {
+    setGameState(prev => {
+      if (!prev) return prev;
+      return executeUseSkill(prev, payload);
+    });
+  }, []);
+
   const returnToTitle = useCallback(() => {
     setGameState(null);
   }, []);
@@ -60,6 +68,7 @@ export function useGameController() {
     startGame,
     placeTile,
     useWildcard,
+    useSkill,
     returnToTitle
   };
 }

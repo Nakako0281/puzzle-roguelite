@@ -11,13 +11,15 @@ import { RuleModal } from './RuleModal';
 import { MenuModal } from './MenuModal';
 import { WildcardType } from '../domain/models/Wildcard';
 import { ATTRIBUTES } from '../domain/models/Tile';
-import { Info, Volume2, VolumeX, Volume1, Menu } from 'lucide-react';
+import { SKILL_GAUGE_MAX } from '../domain/models/GameState';
+import { Info, Volume2, VolumeX, Volume1, Menu, Zap } from 'lucide-react';
 import { Howler } from 'howler';
 
 export function GameContainer() {
-  const { gameState, metaState, startGame, placeTile, useWildcard, returnToTitle } = useGameController();
+  const { gameState, metaState, startGame, placeTile, useWildcard, useSkill, returnToTitle } = useGameController();
   const [selectedQueueIndex, setSelectedQueueIndex] = useState(0);
   const [activeWildcard, setActiveWildcard] = useState<WildcardType | undefined>(undefined);
+  const [isSkillActive, setIsSkillActive] = useState(false);
   const [swapFirstCell, setSwapFirstCell] = useState<{r: number, c: number} | undefined>(undefined);
   const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
   const [isMenuModalOpen, setIsMenuModalOpen] = useState(false);
@@ -94,6 +96,19 @@ export function GameContainer() {
   }
 
   const handleCellClick = (r: number, c: number) => {
+    if (isSkillActive) {
+      if (!swapFirstCell) {
+        setSwapFirstCell({ r, c });
+        playSound('select');
+      } else {
+        useSkill({ r1: swapFirstCell.r, c1: swapFirstCell.c, r2: r, c2: c });
+        playSound('swap');
+        setIsSkillActive(false);
+        setSwapFirstCell(undefined);
+      }
+      return;
+    }
+
     if (activeWildcard) {
       if (activeWildcard === 'swap') {
         if (!swapFirstCell) {
@@ -214,6 +229,74 @@ export function GameContainer() {
             selectedCellForSwap={swapFirstCell}
             scorePopups={gameState.scorePopups}
           />
+          
+          {/* Skill UI */}
+          <div className="mt-8 w-full max-w-sm flex flex-col items-center">
+            <div className="flex justify-between w-full mb-2 px-2">
+              <span className="text-slate-600 font-bold text-sm">スペシャルスキル</span>
+              <span className="text-slate-500 font-mono text-sm">{gameState.skillGauge} / {SKILL_GAUGE_MAX}</span>
+            </div>
+            <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden shadow-inner mb-4 relative">
+              <div 
+                className={`h-full rounded-full transition-all duration-300 ${gameState.skillGauge >= SKILL_GAUGE_MAX ? 'bg-emerald-400' : 'bg-emerald-300'}`}
+                style={{ width: `${Math.min(100, (gameState.skillGauge / SKILL_GAUGE_MAX) * 100)}%` }}
+              />
+              {gameState.skillGauge >= SKILL_GAUGE_MAX && (
+                <div className="absolute inset-0 bg-white/30 animate-pulse" />
+              )}
+            </div>
+            <button
+              onClick={() => {
+                if (gameState.skillGauge >= SKILL_GAUGE_MAX) {
+                  if (isSkillActive) {
+                    setIsSkillActive(false);
+                    setSwapFirstCell(undefined);
+                  } else {
+                    setIsSkillActive(true);
+                    setActiveWildcard(undefined);
+                    setSwapFirstCell(undefined);
+                    playSound('powerup');
+                  }
+                }
+              }}
+              disabled={gameState.skillGauge < SKILL_GAUGE_MAX && !isSkillActive}
+              className={`group relative overflow-hidden rounded-xl border-2 transition-all duration-300 flex items-center justify-center p-2 h-16 sm:h-20
+                ${gameState.skillGauge >= SKILL_GAUGE_MAX || isSkillActive
+                  ? isSkillActive 
+                    ? 'border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.8)] animate-pulse'
+                    : 'border-white/80 shadow-[0_0_20px_rgba(52,211,153,0.6)] transform hover:scale-105 cursor-pointer' 
+                  : 'border-slate-300 opacity-60 cursor-not-allowed bg-slate-200 shadow-inner'
+                }
+                w-full max-w-[240px]`}
+              style={{
+                boxShadow: (gameState.skillGauge >= SKILL_GAUGE_MAX || isSkillActive) ? 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -4px 8px rgba(0,0,0,0.2), 0 0 15px rgba(52,211,153,0.6)' : undefined,
+              }}
+            >
+              {(gameState.skillGauge >= SKILL_GAUGE_MAX || isSkillActive) && (
+                <div className={`absolute inset-0 bg-gradient-to-br pointer-events-none ${isSkillActive ? 'from-amber-400 to-orange-500' : 'from-emerald-400 to-teal-500'}`} />
+              )}
+              
+              <div className="relative z-10 flex items-center gap-3 w-full justify-center">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 relative rounded-full overflow-hidden shadow-inner border flex-shrink-0 ${(gameState.skillGauge >= SKILL_GAUGE_MAX || isSkillActive) ? 'border-white/30 bg-white/30' : 'border-slate-400/20 bg-slate-300/50'}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src="/images/whale.png" 
+                    alt="スキル" 
+                    className={`w-full h-full object-cover scale-110 ${(gameState.skillGauge < SKILL_GAUGE_MAX && !isSkillActive) ? 'grayscale opacity-50' : ''}`}
+                    style={{ mixBlendMode: 'multiply' }}
+                  />
+                </div>
+                <div className="flex flex-col items-start justify-center">
+                  <span className={`font-black tracking-wider drop-shadow-md text-sm sm:text-base ${(gameState.skillGauge >= SKILL_GAUGE_MAX || isSkillActive) ? 'text-white' : 'text-slate-500'}`}>
+                    {isSkillActive ? 'キャンセル' : 'クジラの加護'}
+                  </span>
+                  <span className={`text-[0.65rem] sm:text-xs font-bold opacity-90 ${(gameState.skillGauge >= SKILL_GAUGE_MAX || isSkillActive) ? 'text-emerald-50' : 'text-slate-400'}`}>
+                    {isSkillActive ? '入れ替えるピースを選択' : '(盤面のピースを入れ替え)'}
+                  </span>
+                </div>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Right Column: Score & Status */}
