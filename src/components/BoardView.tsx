@@ -22,12 +22,12 @@ export function BoardView({ board, onCellClick, selectedCellForSwap, scorePopups
             {row.map((cell, cIndex) => {
               const isSelected = selectedCellForSwap?.r === rIndex && selectedCellForSwap?.c === cIndex;
               return (
-                <div 
-                  key={`cell-wrapper-${rIndex}-${cIndex}`} 
+                <div
+                  key={`cell-wrapper-${rIndex}-${cIndex}`}
                   className="relative"
                 >
-                  <TileView 
-                    attribute={cell?.attribute} 
+                  <TileView
+                    attribute={cell?.attribute}
                     level={cell?.level}
                     justMerged={cell?.justMerged}
                     empty={!cell}
@@ -41,7 +41,7 @@ export function BoardView({ board, onCellClick, selectedCellForSwap, scorePopups
                         initial={{ opacity: 0, y: 0, scale: 0.5 }}
                         animate={{ opacity: 1, y: -40 - (i * 20), scale: 1.2 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
                         className="absolute inset-0 flex items-center justify-center pointer-events-none z-50"
                       >
                         <span className="text-amber-400 font-black text-xl md:text-2xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]" style={{ textShadow: "0px 2px 4px rgba(0,0,0,1), 0px 0px 2px rgba(0,0,0,0.8)" }}>
