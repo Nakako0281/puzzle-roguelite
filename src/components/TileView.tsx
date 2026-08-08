@@ -31,12 +31,6 @@ const getGradient = (attribute: TileAttribute, level: number): string => {
       'from-gray-50 to-gray-200', // Lv1
       'from-gray-200 to-gray-400', // Lv2
       'from-gray-400 to-gray-600', // Lv3
-    ],
-    squirrel: [
-      '', // Lv0
-      'from-orange-200 to-amber-300', // Lv1
-      'from-orange-400 to-amber-500', // Lv2
-      'from-orange-600 to-amber-700', // Lv3
     ]
   };
   return gradients[attribute]?.[Math.min(level, 3)] || gradients[attribute]?.[1] || 'from-gray-200 to-gray-300';
@@ -50,9 +44,6 @@ const getTextColor = (attribute: TileAttribute, level: number): string => {
     return 'text-slate-800';
   }
   if (attribute === 'seal' && level < 2) {
-    return 'text-slate-800';
-  }
-  if (attribute === 'squirrel' && level < 2) {
     return 'text-slate-800';
   }
   return 'text-white';

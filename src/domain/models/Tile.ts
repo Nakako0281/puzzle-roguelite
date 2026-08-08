@@ -1,4 +1,4 @@
-export type TileAttribute = 'seal' | 'penguin' | 'polar_bear' | 'squirrel';
+export type TileAttribute = 'seal' | 'penguin' | 'polar_bear';
 
 export interface Tile {
   id: string;
@@ -9,12 +9,11 @@ export interface Tile {
 
 export const MAX_LEVEL = 3;
 
-export const ATTRIBUTES: TileAttribute[] = ['seal', 'penguin', 'polar_bear', 'squirrel'];
+export const ATTRIBUTES: TileAttribute[] = ['seal', 'penguin', 'polar_bear'];
 
 // For Japanese display
 export const ATTRIBUTE_NAMES: Record<TileAttribute, string> = {
   seal: 'アザラシ',
   penguin: 'ペンギン',
   polar_bear: 'シロクマ',
-  squirrel: 'リス',
 };

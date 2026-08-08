@@ -86,10 +86,8 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
       // 基本マージスコア: 繋がっているピース数 × レベル × 100
       let mergeScore = cluster.length * currentTile.level * 100;
 
-      // シナジー適用（リスによるスコア底上げボーナス）
       const neighbors = getNeighbors(newBoard, r, c);
-      const squirrelCount = neighbors.filter(n => n && n.attribute === 'squirrel').length;
-      let multiplier = 1.0 + (squirrelCount * 0.2);
+      let multiplier = 1.0;
 
       // ペンギン特有のボーナス（5匹以上でボーナス加算）
       if (currentTile.attribute === 'penguin') {

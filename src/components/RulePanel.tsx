@@ -66,16 +66,7 @@ export function RulePanel() {
                   </div>
                 </li>
 
-                <li className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-sky-100 flex items-center justify-center border border-sky-200 mt-0.5">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/images/squirrel.png" alt="Squirrel" className="w-full h-full object-cover scale-110" style={{ mixBlendMode: 'multiply' }} />
-                  </div>
-                  <div>
-                    <span className="font-bold text-amber-600 block">リス（サポート）</span>
-                    <span className="text-xs">隣で動物が進化すると、スコアをアップ（1匹につき+20%）してくれる頼もしい味方。</span>
-                  </div>
-                </li>
+
               </ul>
               
               <div className="mt-4 pt-3 border-t border-slate-200 text-xs text-slate-500">
