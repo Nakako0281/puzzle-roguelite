@@ -195,12 +195,12 @@ export function GameContainer() {
       <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-12 gap-8">
         
         {/* Left Column: Rules */}
-        <div className="md:col-span-3 order-2 md:order-1 h-full relative z-20">
+        <div className="hidden md:block md:col-span-3 h-full relative z-20 md:order-1">
           <RulePanel />
         </div>
 
         {/* Center Column: Board and Next */}
-        <div className="md:col-span-7 flex flex-col items-center order-1 md:order-2 z-10">
+        <div className="w-full md:col-span-7 flex flex-col items-center order-2 md:order-2 z-10">
           <div className="mb-6">
             <NextQueueView 
               queue={gameState.nextQueue} 
@@ -217,7 +217,7 @@ export function GameContainer() {
         </div>
 
         {/* Right Column: Score & Status */}
-        <div className="md:col-span-2 order-3">
+        <div className="w-full md:col-span-2 order-1 md:order-3 mb-4 md:mb-0">
           <ScoreView 
             score={gameState.score} 
             comboMultiplier={gameState.comboMultiplier} 

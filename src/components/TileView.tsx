@@ -68,7 +68,7 @@ export function TileView({ attribute, level = 1, justMerged, onClick, selected, 
     return (
       <div 
         onClick={onClick}
-        className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl border border-sky-200 bg-sky-100/50 backdrop-blur-sm flex items-center justify-center cursor-pointer hover:bg-sky-200/50 transition-colors shadow-inner"
+        className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-xl border border-sky-200 bg-sky-100/50 backdrop-blur-sm flex items-center justify-center cursor-pointer hover:bg-sky-200/50 transition-colors shadow-inner"
       />
     );
   }
@@ -102,7 +102,7 @@ export function TileView({ attribute, level = 1, justMerged, onClick, selected, 
       transition={transitionConfig}
       exit={{ scale: 0.5, opacity: 0 }}
       onClick={onClick}
-      className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl flex flex-col items-center justify-center font-bold cursor-pointer relative overflow-hidden
+      className={`w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-xl flex flex-col items-center justify-center font-bold cursor-pointer relative overflow-hidden
         ${getTextColor(attribute, level)} ${currentLevelStyle} ${selected ? 'ring-4 ring-white scale-110 z-10 shadow-2xl' : 'hover:scale-105 hover:brightness-110 transition-transform duration-200'}`}
       style={{
         boxShadow: selected ? undefined : 'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -4px 8px rgba(0,0,0,0.2), 0 4px 6px rgba(0,0,0,0.3)',
@@ -111,7 +111,7 @@ export function TileView({ attribute, level = 1, justMerged, onClick, selected, 
       <div className={`absolute inset-0 bg-gradient-to-br ${getGradient(attribute, level)} pointer-events-none transition-all duration-300`} />
       
       <div className="relative z-10 flex flex-col items-center justify-center h-full w-full p-1">
-        <div className="w-10 h-10 md:w-14 md:h-14 mb-0.5 relative rounded-full overflow-hidden shadow-inner border border-white/20 bg-white/20">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 mb-0.5 relative rounded-full overflow-hidden shadow-inner border border-white/20 bg-white/20">
           {/* Using next/img or just standard img */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 

@@ -15,7 +15,7 @@ interface BoardViewProps {
 
 export function BoardView({ board, onCellClick, selectedCellForSwap, scorePopups }: BoardViewProps) {
   return (
-    <div className="bg-white/70 backdrop-blur-md p-2 md:p-4 rounded-xl shadow-2xl inline-block border border-white/60 shadow-sky-900/5">
+    <div className="bg-white/70 backdrop-blur-md p-1 sm:p-2 md:p-4 rounded-xl shadow-2xl inline-block border border-white/60 shadow-sky-900/5">
       <div className="flex flex-col gap-1 md:gap-2">
         {board.map((row, rIndex) => (
           <div key={`row-${rIndex}`} className="flex gap-1 md:gap-2">

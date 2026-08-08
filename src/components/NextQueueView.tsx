@@ -36,7 +36,7 @@ export function NextQueueView({ queue, selectedIndex, onSelect }: NextQueueViewP
           ))}
         </AnimatePresence>
         {Array.from({ length: Math.max(0, 3 - queue.length) }).map((_, i) => (
-          <div key={`empty-${i}`} className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded border-2 border-sky-200 bg-sky-50 opacity-50" />
+          <div key={`empty-${i}`} className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded border-2 border-sky-200 bg-sky-50 opacity-50" />
         ))}
       </div>
       <p className="text-slate-500 text-xs mt-1">配置するタイルを選択してください</p>
