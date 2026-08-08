@@ -96,6 +96,7 @@ export function TileView({ attribute, level = 1, justMerged, onClick, selected, 
 
   return (
     <motion.div
+      layout
       initial={{ scale: 0.8, opacity: 0 }}
       animate={animateConfig}
       transition={transitionConfig}

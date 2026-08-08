@@ -1,6 +1,6 @@
 import { Tile, TileAttribute, MAX_LEVEL } from './Tile';
 
-export const BOARD_SIZE = 6;
+export const BOARD_SIZE = 5;
 export const COMBO_THRESHOLD = 4;
 
 export type BoardState = (Tile | null)[][];
@@ -45,75 +45,95 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
   const newBoard = board.map(r => [...r]);
   newBoard[row][col] = tile;
 
-  let scoreGained = 0;
+  let totalScoreGained = 0;
+  let allClearedCells: { r: number; c: number }[] = [];
 
   // Placement Score
   let placementScore = tile.level * 10;
   
-  const neighbors = getNeighbors(newBoard, row, col);
-  const isPolluted = neighbors.some(n => n && n.attribute === 'polar_bear');
+  const initialNeighbors = getNeighbors(newBoard, row, col);
+  const initialPolluted = initialNeighbors.some(n => n && n.attribute === 'polar_bear');
 
   // シロクマが隣にいるとスコア無効化（自身がシロクマの場合を除く）
-  if (tile.attribute !== 'polar_bear' && isPolluted) {
+  if (tile.attribute !== 'polar_bear' && initialPolluted) {
     placementScore = 0;
   }
   
-  scoreGained += placementScore;
+  totalScoreGained += placementScore;
 
-  const visited = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(false));
-  const cluster = findClusters(newBoard, row, col, tile.attribute, tile.level, visited);
+  let currentComboMultiplier = comboMultiplier;
+  
+  // 連鎖（カスケード）処理用のキュー
+  const queue = [{ r: row, c: col, currentTile: tile }];
 
-  let clearedCells: { r: number; c: number }[] = [];
+  while (queue.length > 0) {
+    const { r, c, currentTile } = queue.shift()!;
+    
+    // 別の連鎖で消去済みでないか確認
+    if (newBoard[r][c]?.id !== currentTile.id) continue;
 
-  if (cluster.length >= COMBO_THRESHOLD) {
-    clearedCells = cluster;
+    const visited = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(false));
+    const cluster = findClusters(newBoard, r, c, currentTile.attribute, currentTile.level, visited);
 
-    // 基本マージスコア: 繋がっているピース数 × レベル × 100
-    let mergeScore = cluster.length * tile.level * 100;
+    if (cluster.length >= COMBO_THRESHOLD) {
+      allClearedCells.push(...cluster);
 
-    // シナジー適用（リスによるスコア底上げボーナス）
-    const squirrelCount = neighbors.filter(n => n && n.attribute === 'squirrel').length;
-    let multiplier = 1.0 + (squirrelCount * 0.2);
+      // 基本マージスコア: 繋がっているピース数 × レベル × 100
+      let mergeScore = cluster.length * currentTile.level * 100;
 
-    // ペンギン特有のボーナス（5匹以上でボーナス加算）
-    if (tile.attribute === 'penguin') {
-      multiplier *= 1.0 + (cluster.length - 4) * 0.5;
-    }
+      // シナジー適用（リスによるスコア底上げボーナス）
+      const neighbors = getNeighbors(newBoard, r, c);
+      const squirrelCount = neighbors.filter(n => n && n.attribute === 'squirrel').length;
+      let multiplier = 1.0 + (squirrelCount * 0.2);
 
-    mergeScore = mergeScore * multiplier;
-
-    if (tile.attribute !== 'polar_bear' && isPolluted) {
-      mergeScore = 0;
-    }
-
-    scoreGained += Math.floor(mergeScore) * comboMultiplier;
-
-    // まずクラスターを全て消去
-    for (const cell of clearedCells) {
-      newBoard[cell.r][cell.c] = null;
-    }
-
-    // レベルが最大未満なら、最後に置いたマスに1段階上のタイルを生成
-    if (tile.level < MAX_LEVEL) {
-      const mergedTile: Tile = {
-        ...tile,
-        id: `merged-${Date.now()}-${row}-${col}`,
-        level: tile.level + 1,
-        justMerged: true,
-      };
-      newBoard[row][col] = mergedTile;
-      clearedCells = clearedCells.filter(cell => cell.r !== row || cell.c !== col);
-
-      // マージによって生成されたピースの配置スコアを加算
-      let mergedPlacementScore = mergedTile.level * 10;
-      if (mergedTile.attribute !== 'polar_bear' && isPolluted) {
-        mergedPlacementScore = 0;
+      // ペンギン特有のボーナス（5匹以上でボーナス加算）
+      if (currentTile.attribute === 'penguin') {
+        multiplier *= 1.0 + (cluster.length - 4) * 0.5;
       }
-      scoreGained += mergedPlacementScore;
+
+      mergeScore = mergeScore * multiplier;
+
+      const isPolluted = neighbors.some(n => n && n.attribute === 'polar_bear');
+      if (currentTile.attribute !== 'polar_bear' && isPolluted) {
+        mergeScore = 0;
+      }
+
+      totalScoreGained += Math.floor(mergeScore) * currentComboMultiplier;
+
+      // まずクラスターを全て消去
+      for (const cell of cluster) {
+        newBoard[cell.r][cell.c] = null;
+      }
+
+      // レベルが最大未満なら、最後に置いたマスに1段階上のタイルを生成
+      if (currentTile.level < MAX_LEVEL) {
+        const mergedTile: Tile = {
+          ...currentTile,
+          id: `merged-${Date.now()}-${r}-${c}-${currentTile.level + 1}`,
+          level: currentTile.level + 1,
+          justMerged: true,
+        };
+        newBoard[r][c] = mergedTile;
+        allClearedCells = allClearedCells.filter(cell => cell.r !== r || cell.c !== c);
+
+        // マージによって生成されたピースの配置スコアを加算
+        let mergedPlacementScore = mergedTile.level * 10;
+        const mergedNeighbors = getNeighbors(newBoard, r, c);
+        const mergedPolluted = mergedNeighbors.some(n => n && n.attribute === 'polar_bear');
+        if (mergedTile.attribute !== 'polar_bear' && mergedPolluted) {
+          mergedPlacementScore = 0;
+        }
+        totalScoreGained += mergedPlacementScore;
+
+        // 進化したタイルがさらに連鎖を起こすかチェック
+        queue.push({ r, c, currentTile: mergedTile });
+        
+        currentComboMultiplier++;
+      }
     }
   }
 
-  return { newBoard, clearedCells, scoreGained };
+  return { newBoard, clearedCells: allClearedCells, scoreGained: totalScoreGained };
 }
 
 export function getNeighbors(board: BoardState, r: number, c: number): (Tile | null)[] {
