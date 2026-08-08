@@ -52,13 +52,8 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
 
   // Placement Score
   let placementScore = tile.level * 10;
-
-  const initialNeighbors = getNeighbors(newBoard, row, col);
-  const initialPolluted = initialNeighbors.some(n => n && n.attribute === 'polar_bear');
-
-  // シロクマが隣にいるとスコア無効化（自身がシロクマの場合を除く）
-  if (tile.attribute !== 'polar_bear' && initialPolluted) {
-    placementScore = 0;
+  if (tile.attribute === 'polar_bear') {
+    placementScore = tile.level * 15;
   }
 
   totalScoreGained += placementScore;
@@ -86,7 +81,6 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
       // 基本マージスコア: 繋がっているピース数 × レベル × 100
       let mergeScore = cluster.length * currentTile.level * 100;
 
-      const neighbors = getNeighbors(newBoard, r, c);
       let multiplier = 1.0;
 
       // ペンギン特有のボーナス（5匹以上でボーナス加算）
@@ -95,11 +89,6 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
       }
 
       mergeScore = mergeScore * multiplier;
-
-      const isPolluted = neighbors.some(n => n && n.attribute === 'polar_bear');
-      if (currentTile.attribute !== 'polar_bear' && isPolluted) {
-        mergeScore = 0;
-      }
 
       const finalMergeScore = Math.floor(mergeScore) * currentComboMultiplier;
       totalScoreGained += finalMergeScore;
@@ -125,10 +114,8 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
 
         // マージによって生成されたピースの配置スコアを加算
         let mergedPlacementScore = mergedTile.level * 10;
-        const mergedNeighbors = getNeighbors(newBoard, r, c);
-        const mergedPolluted = mergedNeighbors.some(n => n && n.attribute === 'polar_bear');
-        if (mergedTile.attribute !== 'polar_bear' && mergedPolluted) {
-          mergedPlacementScore = 0;
+        if (mergedTile.attribute === 'polar_bear') {
+          mergedPlacementScore = mergedTile.level * 15;
         }
         totalScoreGained += mergedPlacementScore;
         if (mergedPlacementScore > 0) {

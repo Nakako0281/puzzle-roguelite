@@ -61,8 +61,8 @@ export function RulePanel() {
                     <img src="/images/polar_bear.png" alt="Polar Bear" className="w-full h-full object-cover scale-110" style={{ mixBlendMode: 'multiply' }} />
                   </div>
                   <div>
-                    <span className="font-bold text-gray-600 block">シロクマ（お邪魔）</span>
-                    <span className="text-xs">隣に他の動物を置いたり進化させたりすると、スコアが0点になってしまう。</span>
+                    <span className="font-bold text-gray-600 block">シロクマ（高スコア）</span>
+                    <span className="text-xs">配置した時の基本スコアが通常の1.5倍もらえるおトクな動物！</span>
                   </div>
                 </li>
 
