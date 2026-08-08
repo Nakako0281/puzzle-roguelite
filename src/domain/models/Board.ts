@@ -35,6 +35,7 @@ export interface PlaceResult {
   newBoard: BoardState;
   clearedCells: { r: number; c: number }[];
   scoreGained: number;
+  scorePopups: { r: number; c: number; score: number; id: string }[];
 }
 
 export function placeTile(board: BoardState, row: number, col: number, tile: Tile, comboMultiplier: number = 1): PlaceResult {
@@ -47,6 +48,7 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
 
   let totalScoreGained = 0;
   let allClearedCells: { r: number; c: number }[] = [];
+  const scorePopups: { r: number; c: number; score: number; id: string }[] = [];
 
   // Placement Score
   let placementScore = tile.level * 10;
@@ -60,6 +62,9 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
   }
   
   totalScoreGained += placementScore;
+  if (placementScore > 0) {
+    scorePopups.push({ r: row, c: col, score: placementScore, id: `pop-place-${Date.now()}-${Math.random()}` });
+  }
 
   let currentComboMultiplier = comboMultiplier;
   
@@ -98,7 +103,11 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
         mergeScore = 0;
       }
 
-      totalScoreGained += Math.floor(mergeScore) * currentComboMultiplier;
+      const finalMergeScore = Math.floor(mergeScore) * currentComboMultiplier;
+      totalScoreGained += finalMergeScore;
+      if (finalMergeScore > 0) {
+        scorePopups.push({ r, c, score: finalMergeScore, id: `pop-merge-${Date.now()}-${r}-${c}-${Math.random()}` });
+      }
 
       // まずクラスターを全て消去
       for (const cell of cluster) {
@@ -124,6 +133,10 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
           mergedPlacementScore = 0;
         }
         totalScoreGained += mergedPlacementScore;
+        if (mergedPlacementScore > 0) {
+          // 同じマスでマージスコアと発生する可能性があるため、少しユニークIDと描画位置を分けると良いが、今回はそのまま追加
+          scorePopups.push({ r, c, score: mergedPlacementScore, id: `pop-merged-place-${Date.now()}-${r}-${c}-${Math.random()}` });
+        }
 
         // 進化したタイルがさらに連鎖を起こすかチェック
         queue.push({ r, c, currentTile: mergedTile });
@@ -133,7 +146,7 @@ export function placeTile(board: BoardState, row: number, col: number, tile: Til
     }
   }
 
-  return { newBoard, clearedCells: allClearedCells, scoreGained: totalScoreGained };
+  return { newBoard, clearedCells: allClearedCells, scoreGained: totalScoreGained, scorePopups };
 }
 
 export function getNeighbors(board: BoardState, r: number, c: number): (Tile | null)[] {

@@ -19,7 +19,7 @@ export function executePlaceTile(
       row.map(tile => tile ? { ...tile, justMerged: false } : null)
     );
 
-    const { newBoard, scoreGained } = placeTile(cleanBoard, row, col, tileToPlace, state.comboMultiplier);
+    const { newBoard, scoreGained, scorePopups } = placeTile(cleanBoard, row, col, tileToPlace, state.comboMultiplier);
     
     // Remove the placed tile
     const newNextQueue = [...state.nextQueue];
@@ -50,6 +50,7 @@ export function executePlaceTile(
       comboMultiplier: 1, // Reset after placement
       status: newStatus,
       gameOverReason,
+      scorePopups,
     };
   } catch (e) {
     // Cannot place tile

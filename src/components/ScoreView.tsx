@@ -17,21 +17,34 @@ export function ScoreView({ score, comboMultiplier, board }: ScoreViewProps) {
 
   useEffect(() => {
     if (score > prevScoreRef.current) {
-      // 盤面にマージされたピースがあるかチェック
-      const hasMerged = board.some(row => row.some(cell => cell && cell.justMerged));
+      // 盤面にマージされたピースの最大レベルを取得
+      let maxMergedLevel = 0;
+      board.forEach(row => {
+        row.forEach(cell => {
+          if (cell && cell.justMerged) {
+            maxMergedLevel = Math.max(maxMergedLevel, cell.level);
+          }
+        });
+      });
 
-      if (hasMerged) {
+      if (maxMergedLevel > 0) {
+        // レベル3以上への進化ならエフェクト2倍
+        const isHighLevelMerge = maxMergedLevel >= 3;
+        const particleCount = isHighLevelMerge ? 300 : 150;
+        const spread = isHighLevelMerge ? 120 : 70;
+        const scaleEffect = isHighLevelMerge ? [1, 2, 1] : [1, 1.5, 1];
+
         // マージ発生時（4つ以上つながった時など）の豪華なエフェクト
         controls.start({
-          scale: [1, 1.5, 1],
+          scale: scaleEffect,
           color: ['#1e293b', '#f59e0b', '#1e293b'], // text-slate-800 -> amber-500 -> text-slate-800
           transition: { duration: 0.5, ease: "easeInOut" }
         });
         
         // 脳汁が出る紙吹雪エフェクト
         confetti({
-          particleCount: 150,
-          spread: 70,
+          particleCount: particleCount,
+          spread: spread,
           origin: { y: 0.5, x: 0.8 }, // 右側のScoreViewあたりから出す
           colors: ['#fbbf24', '#f87171', '#60a5fa', '#34d399'],
           zIndex: 100,

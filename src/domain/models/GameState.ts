@@ -15,6 +15,7 @@ export interface GameState {
   wildcards: Record<string, Wildcard>;
   status: GameStatus;
   gameOverReason: GameOverReason;
+  scorePopups: { r: number; c: number; score: number; id: string }[];
 }
 
 export function createInitialGameState(): GameState {
@@ -30,5 +31,6 @@ export function createInitialGameState(): GameState {
     wildcards: JSON.parse(JSON.stringify(INITIAL_WILDCARDS)),
     status: 'playing',
     gameOverReason: undefined,
+    scorePopups: [],
   };
 }

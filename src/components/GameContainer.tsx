@@ -212,6 +212,7 @@ export function GameContainer() {
             board={gameState.board} 
             onCellClick={handleCellClick} 
             selectedCellForSwap={swapFirstCell}
+            scorePopups={gameState.scorePopups}
           />
         </div>
 

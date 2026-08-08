@@ -15,6 +15,16 @@ export function useGameController() {
     setMetaState(GameRepository.loadMetaProgression());
   }, []);
 
+  // スコアポップアップを一定時間後にクリアする
+  useEffect(() => {
+    if (gameState?.scorePopups && gameState.scorePopups.length > 0) {
+      const timer = setTimeout(() => {
+        setGameState(prev => prev ? { ...prev, scorePopups: [] } : prev);
+      }, 600); // アニメーションの完了を待ってからクリア
+      return () => clearTimeout(timer);
+    }
+  }, [gameState?.scorePopups]);
+
   const startGame = useCallback(() => {
     setGameState(createInitialGameState());
   }, []);
