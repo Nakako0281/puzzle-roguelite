@@ -20,7 +20,7 @@ export function GameContainer() {
   const [selectedQueueIndex, setSelectedQueueIndex] = useState(0);
   const [activeWildcard, setActiveWildcard] = useState<WildcardType | undefined>(undefined);
   const [isSkillActive, setIsSkillActive] = useState(false);
-  const [swapFirstCell, setSwapFirstCell] = useState<{r: number, c: number} | undefined>(undefined);
+  const [swapFirstCell, setSwapFirstCell] = useState<{ r: number, c: number } | undefined>(undefined);
   const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
   const [isMenuModalOpen, setIsMenuModalOpen] = useState(false);
 
@@ -46,50 +46,107 @@ export function GameContainer() {
     }
   }, [gameState, playBGM]);
 
+  const playedMergeIdsRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     if (gameState) {
+      let newlyMerged = false;
       // 盤面にマージされたばかりのピースがあるかチェック
-      const hasMerged = gameState.board.some(row => 
-        row.some(cell => cell && cell.justMerged)
-      );
-      if (hasMerged) {
+      gameState.board.forEach(row => {
+        row.forEach(cell => {
+          if (cell && cell.justMerged && !playedMergeIdsRef.current.has(cell.id)) {
+            newlyMerged = true;
+            playedMergeIdsRef.current.add(cell.id);
+          }
+        });
+      });
+      if (newlyMerged) {
         playSound('match');
       }
+    } else {
+      playedMergeIdsRef.current.clear();
     }
   }, [gameState, playSound]);
+
+  const fixedHeaderControls = (
+    <div className="fixed top-4 right-4 md:top-6 md:right-8 z-50 flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-1 md:gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 md:px-3 md:py-1.5 rounded-full border border-slate-200 shadow-sm">
+        <button
+          onClick={() => setIsMuted(!isMuted)}
+          className="text-slate-500 hover:text-sky-500 transition-colors p-1"
+          title={isMuted ? "ミュート解除" : "ミュート"}
+        >
+          {isMuted || volume === 0 ? <VolumeX size={20} /> : volume < 0.5 ? <Volume1 size={20} /> : <Volume2 size={20} />}
+        </button>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.05"
+          value={isMuted ? 0 : volume}
+          onChange={(e) => {
+            const val = parseFloat(e.target.value);
+            setVolume(val);
+            if (val > 0 && isMuted) {
+              setIsMuted(false);
+            } else if (val === 0 && !isMuted) {
+              setIsMuted(true);
+            }
+          }}
+          className="w-16 md:w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+        />
+      </div>
+      <button
+        onClick={() => setIsRuleModalOpen(true)}
+        className="p-2 text-slate-500 hover:text-slate-800 bg-white/80 backdrop-blur-sm rounded-full border border-slate-200 hover:bg-white transition-colors shadow-sm"
+        title="遊び方"
+      >
+        <Info size={20} />
+      </button>
+    </div>
+  );
 
   if (!gameState) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 text-slate-800">
-        <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
-          盤上算段(仮)
-        </h1>
-        <p className="mb-8 text-slate-500">戦略パズル・ローグライト</p>
-        
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/title.webp"
+          alt="南極！北極！流氷パズル"
+          className="w-[90vw] max-w-[600px] mb-6 object-contain drop-shadow-lg"
+        />
+
         {metaState && (
-          <div className="mb-8 p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-lg flex flex-col items-center">
-            <h2 className="text-xl font-bold text-slate-700 mb-2">メタプログレッション</h2>
-            <p className="text-slate-600">累計ポイント: <span className="text-amber-500 font-bold">{metaState.totalPoints}</span></p>
-            <p className="text-slate-600">ベストスコア: <span className="text-slate-800 font-bold">{metaState.bestScore}</span></p>
+          <div className="mb-8 p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-lg flex flex-col items-center min-w-[280px]">
+            <h2 className="text-xl font-bold text-slate-700 mb-4">歴代スコア</h2>
+            <div className="flex flex-col gap-2 w-full">
+              {[0, 1, 2].map((index) => {
+                const score = metaState.highScores?.[index] || 0;
+                return (
+                  <div key={index} className="flex justify-between items-center bg-white/50 px-4 py-2 rounded-lg border border-slate-100">
+                    <span className={`font-bold ${index === 0 ? 'text-amber-500' : index === 1 ? 'text-slate-400' : 'text-amber-700'}`}>
+                      {index + 1}位
+                    </span>
+                    <span className={`font-bold font-mono ${index === 0 ? 'text-amber-500 text-xl' : index === 1 ? 'text-slate-500 text-lg' : 'text-amber-700/80 text-lg'}`}>
+                      {score.toLocaleString()}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
         <div className="flex gap-4">
-          <button 
+          <button
             onClick={startGame}
             className="px-8 py-4 bg-sky-500 hover:bg-sky-400 rounded-full text-white font-bold text-xl shadow-lg shadow-sky-200 transition-transform hover:scale-105"
           >
             ゲーム開始
           </button>
-          <button 
-            onClick={() => setIsRuleModalOpen(true)}
-            className="p-4 bg-white hover:bg-slate-50 rounded-full text-slate-600 border border-slate-200 shadow-lg transition-transform hover:scale-105 flex items-center justify-center"
-            title="遊び方"
-          >
-            <Info size={28} />
-          </button>
         </div>
 
+        {fixedHeaderControls}
         <RuleModal isOpen={isRuleModalOpen} onClose={() => setIsRuleModalOpen(false)} />
       </div>
     );
@@ -159,56 +216,29 @@ export function GameContainer() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-sky-100 p-4 md:p-8 flex flex-col items-center font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-sky-100 p-4 md:p-8 flex flex-col items-center font-sans relative">
+      {fixedHeaderControls}
+      <div className="fixed top-16 right-4 md:top-20 md:right-8 z-50 flex items-center">
+        <button
+          onClick={() => setIsMenuModalOpen(true)}
+          className="p-2 text-slate-500 hover:text-slate-800 bg-white/80 backdrop-blur-sm rounded-full border border-slate-200 hover:bg-white transition-colors shadow-sm"
+          title="メニュー"
+        >
+          <Menu size={20} />
+        </button>
+      </div>
+
       <div className="max-w-6xl w-full flex justify-between items-center mb-4 md:mb-6 px-2">
-        <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">盤上算段(仮)</h1>
-        
-        <div className="flex items-center gap-2 md:gap-4">
-          <div className="flex items-center gap-1 md:gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 md:px-3 md:py-1.5 rounded-full border border-slate-200 shadow-sm">
-            <button 
-              onClick={() => setIsMuted(!isMuted)}
-              className="text-slate-500 hover:text-sky-500 transition-colors p-1"
-              title={isMuted ? "ミュート解除" : "ミュート"}
-            >
-              {isMuted || volume === 0 ? <VolumeX size={20} /> : volume < 0.5 ? <Volume1 size={20} /> : <Volume2 size={20} />}
-            </button>
-            <input 
-              type="range" 
-              min="0" 
-              max="1" 
-              step="0.05" 
-              value={isMuted ? 0 : volume}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                setVolume(val);
-                if (val > 0 && isMuted) {
-                  setIsMuted(false);
-                } else if (val === 0 && !isMuted) {
-                  setIsMuted(true);
-                }
-              }}
-              className="w-16 md:w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
-            />
-          </div>
-          <button 
-            onClick={() => setIsRuleModalOpen(true)}
-            className="p-2 text-slate-500 hover:text-slate-800 bg-white/80 backdrop-blur-sm rounded-full border border-slate-200 hover:bg-white transition-colors shadow-sm"
-            title="遊び方"
-          >
-            <Info size={20} />
-          </button>
-          <button 
-            onClick={() => setIsMenuModalOpen(true)}
-            className="p-2 text-slate-500 hover:text-slate-800 bg-white/80 backdrop-blur-sm rounded-full border border-slate-200 hover:bg-white transition-colors shadow-sm"
-            title="メニュー"
-          >
-            <Menu size={20} />
-          </button>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/title.webp"
+          alt="南極！北極！流氷パズル"
+          className="h-10 md:h-12 w-auto object-contain drop-shadow-sm"
+        />
       </div>
 
       <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-12 gap-8">
-        
+
         {/* Left Column: Rules */}
         <div className="hidden md:block md:col-span-3 h-full relative z-20 md:order-1">
           <RulePanel />
@@ -217,19 +247,19 @@ export function GameContainer() {
         {/* Center Column: Board and Next */}
         <div className="w-full md:col-span-7 flex flex-col items-center order-2 md:order-2 z-10">
           <div className="mb-6">
-            <NextQueueView 
-              queue={gameState.nextQueue} 
-              selectedIndex={selectedQueueIndex} 
-              onSelect={(i) => !activeWildcard && setSelectedQueueIndex(i)} 
+            <NextQueueView
+              queue={gameState.nextQueue}
+              selectedIndex={selectedQueueIndex}
+              onSelect={(i) => !activeWildcard && setSelectedQueueIndex(i)}
             />
           </div>
-          <BoardView 
-            board={gameState.board} 
-            onCellClick={handleCellClick} 
+          <BoardView
+            board={gameState.board}
+            onCellClick={handleCellClick}
             selectedCellForSwap={swapFirstCell}
             scorePopups={gameState.scorePopups}
           />
-          
+
           {/* Skill UI */}
           <div className="mt-8 w-full max-w-sm flex flex-col items-center">
             <div className="flex justify-between w-full mb-2 px-2">
@@ -237,7 +267,7 @@ export function GameContainer() {
               <span className="text-slate-500 font-mono text-sm">{gameState.skillGauge} / {SKILL_GAUGE_MAX}</span>
             </div>
             <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden shadow-inner mb-4 relative">
-              <div 
+              <div
                 className={`h-full rounded-full transition-all duration-300 ${gameState.skillGauge >= SKILL_GAUGE_MAX ? 'bg-emerald-400' : 'bg-emerald-300'}`}
                 style={{ width: `${Math.min(100, (gameState.skillGauge / SKILL_GAUGE_MAX) * 100)}%` }}
               />
@@ -262,9 +292,9 @@ export function GameContainer() {
               disabled={gameState.skillGauge < SKILL_GAUGE_MAX && !isSkillActive}
               className={`group relative overflow-hidden rounded-xl border-2 transition-all duration-300 flex items-center justify-center p-2 h-16 sm:h-20
                 ${gameState.skillGauge >= SKILL_GAUGE_MAX || isSkillActive
-                  ? isSkillActive 
+                  ? isSkillActive
                     ? 'border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.8)] animate-pulse'
-                    : 'border-white/80 shadow-[0_0_20px_rgba(52,211,153,0.6)] transform hover:scale-105 cursor-pointer' 
+                    : 'border-white/80 shadow-[0_0_20px_rgba(52,211,153,0.6)] transform hover:scale-105 cursor-pointer'
                   : 'border-slate-300 opacity-60 cursor-not-allowed bg-slate-200 shadow-inner'
                 }
                 w-full max-w-[240px]`}
@@ -275,13 +305,13 @@ export function GameContainer() {
               {(gameState.skillGauge >= SKILL_GAUGE_MAX || isSkillActive) && (
                 <div className={`absolute inset-0 bg-gradient-to-br pointer-events-none ${isSkillActive ? 'from-amber-400 to-orange-500' : 'from-emerald-400 to-teal-500'}`} />
               )}
-              
+
               <div className="relative z-10 flex items-center gap-3 w-full justify-center">
                 <div className={`w-10 h-10 sm:w-12 sm:h-12 relative rounded-full overflow-hidden shadow-inner border flex-shrink-0 ${(gameState.skillGauge >= SKILL_GAUGE_MAX || isSkillActive) ? 'border-white/30 bg-white/30' : 'border-slate-400/20 bg-slate-300/50'}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src="/images/whale.png" 
-                    alt="スキル" 
+                  <img
+                    src="/images/whale.png"
+                    alt="スキル"
                     className={`w-full h-full object-cover scale-110 ${(gameState.skillGauge < SKILL_GAUGE_MAX && !isSkillActive) ? 'grayscale opacity-50' : ''}`}
                     style={{ mixBlendMode: 'multiply' }}
                   />
@@ -301,9 +331,9 @@ export function GameContainer() {
 
         {/* Right Column: Score & Status */}
         <div className="w-full md:col-span-2 order-1 md:order-3 mb-4 md:mb-0">
-          <ScoreView 
-            score={gameState.score} 
-            comboMultiplier={gameState.comboMultiplier} 
+          <ScoreView
+            score={gameState.score}
+            comboMultiplier={gameState.comboMultiplier}
             board={gameState.board}
           />
         </div>
@@ -317,13 +347,13 @@ export function GameContainer() {
             <p className="text-slate-500 mb-6">
               盤面が埋まりました
             </p>
-            
+
             <div className="text-center mb-8">
               <p className="text-slate-400 text-sm uppercase">Final Score</p>
               <p className="text-5xl font-mono text-amber-500 font-bold">{gameState.score}</p>
             </div>
 
-            <button 
+            <button
               onClick={returnToTitle}
               className="px-6 py-3 bg-sky-500 hover:bg-sky-400 rounded-full text-white font-bold shadow-md shadow-sky-200"
             >
@@ -334,9 +364,9 @@ export function GameContainer() {
       )}
 
       <RuleModal isOpen={isRuleModalOpen} onClose={() => setIsRuleModalOpen(false)} />
-      <MenuModal 
-        isOpen={isMenuModalOpen} 
-        onClose={() => setIsMenuModalOpen(false)} 
+      <MenuModal
+        isOpen={isMenuModalOpen}
+        onClose={() => setIsMenuModalOpen(false)}
         onRetry={startGame}
         onReturnToTitle={returnToTitle}
       />
